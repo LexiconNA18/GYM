@@ -1,0 +1,89 @@
+﻿@model IEnumerable<GYM.Models.GymClass>
+
+@{
+    ViewData["Title"] = "Index";
+    Dictionary<int,string> booked = ViewData["Booked"] as Dictionary<int, string>;
+}
+
+<h1>Index</h1>
+
+<p>
+    <a asp-action="Create">Create New</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.StartTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Durartion)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Description)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    <p>
+                         @Html.DisplayFor(modelItem => item.Name)
+                        <a data-toggle="collapse" href="#memberslist" role="button" aria-expanded="false" aria-controls="collapseExample">
+                            <i class="fa fa-plus"></i>
+                        </a>
+                    </p>
+
+                    <div class="collapse" id="memberslist">
+                        @*ToDo:Refactor ViewComponent? ViewModel with gymclasses with member id*@
+                        @if (User.IsInRole("Admin"))
+                        {
+                        @foreach (var member in item.AttendingMembers.Where(m => m.GymClassId == item.Id).Select(a => a.ApplicationUser))
+                        {
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h4 class="card-title">@member.Email</h4>
+                                        <p class="card-text">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor</p>
+                                        <a href="#" class="btn btn-primary btn-sm"><i class="fa fa-plus"></i></a>
+                                    </div>
+                                </div>
+                        }}
+                    </div>
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.StartTime)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Durartion)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Description)
+                </td>
+                <td>
+                    @if (User.IsInRole("Admin"))
+                    {
+
+                    @if (booked.ContainsKey(item.Id))
+                    {
+                        <a asp-action="BookingToogle" asp-route-id="@item.Id" class="btn btn-danger btn-group-sm">Skip</a> <span>|</span>
+
+                    }
+                    else
+                    {
+                    <a asp-action="BookingToogle" asp-route-id="@item.Id" class="btn btn-success btn-sm">Book</a> <span>|</span>
+                    }
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> <span>|</span>
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> <span>|</span>
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
