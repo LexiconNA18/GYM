@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace GYM.Controllers
 {
+    [Authorize(Roles ="Admin")]
     public class GymClassesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -22,6 +24,7 @@ namespace GYM.Controllers
         }
 
         // GET: GymClasses
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             if (!User.Identity.IsAuthenticated)
@@ -42,6 +45,7 @@ namespace GYM.Controllers
             return View(model);
         }
 
+        [Authorize(Roles ="Member")]
         public async Task<IActionResult> BookingToogle(int? id)
         {
             if (id == null) return NotFound();

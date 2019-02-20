@@ -29,14 +29,11 @@ using GYM.Models;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.AspNetCore.WebSockets.Internal;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace LexiconUniversity
@@ -96,32 +93,36 @@ namespace LexiconUniversity
 
                 foreach (var name in roleNames)
                 {
-                    if (!await roleManager.RoleExistsAsync(name)) continue;
+                    if (await roleManager.RoleExistsAsync(name)) continue;
                     var role = new IdentityRole { Name = name };
                     var result = await roleManager.CreateAsync(role);
-                    if(!result.Succeeded)
-                    {
-                        throw new Exception(string.Join("\n", result.Errors));
-                    }
-                }
-
-                var emails = new[] {  "admin@gym.se" };
-                foreach (var email in emails)
-                {
-                    if (!await roleManager.RoleExistsAsync(email)) continue;
-                    var user = new ApplicationUser { UserName = email, Email = email };
-                    var result = await userManager.CreateAsync(user, adminPw);
                     if (!result.Succeeded)
                     {
                         throw new Exception(string.Join("\n", result.Errors));
                     }
                 }
 
-                var adminUser = await userManager.FindByNameAsync("admin@gym.se");
-                var ok = await userManager.AddToRoleAsync(adminUser, "Admin");
-                if (!ok.Succeeded)
+                var emails = new[] { "admin@gym.se" };
+                foreach (var email in emails)
                 {
-                    throw new Exception(string.Join("\n", ok.Errors));
+                    var foundUser = await userManager.FindByEmailAsync(email);
+                    if (foundUser != null) continue;
+                    var user = new ApplicationUser { UserName = email, Email = email };
+                    var addUserResult = await userManager.CreateAsync(user, adminPw);
+                    if (!addUserResult.Succeeded)
+                    {
+                        throw new Exception(string.Join("\n", addUserResult.Errors));
+                    }
+                }
+
+                var adminUser = await userManager.FindByNameAsync("admin@gym.se");
+                foreach (var role in roleNames)
+                {
+                    var addToRoleResultAdmin = await userManager.AddToRoleAsync(adminUser, role);
+                    if (!addToRoleResultAdmin.Succeeded)
+                    {
+                        throw new Exception(string.Join("\n", addToRoleResultAdmin.Errors));
+                    }
                 }
 
             }
