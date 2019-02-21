@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Index";
+    //ToDo: Make ViewModel or Service  
     Dictionary<int, string> booked = ViewData["Booked"] as Dictionary<int, string>;
 }
 
@@ -49,6 +50,7 @@
                         {
                             @foreach (var member in item.AttendingMembers.Where(m => m.GymClassId == item.Id).Select(a => a.ApplicationUser))
                             {
+
                                 <div class="card">
                                     <div class="card-body text-center">
                                         <h4 class="card-title">@member.Email</h4>
@@ -69,22 +71,24 @@
                     @Html.DisplayFor(modelItem => item.Description)
                 </td>
                 <td>
+                    @*ToDo: Make Ajax request*@ 
                     @if (User.IsInRole("Member"))
                     {
 
                         @if (booked.ContainsKey(item.Id))
                         {
-                            <a asp-action="BookingToogle" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Skip</a> <span>|</span>
+                            <a asp-action="BookingToogle" asp-route-id="@item.Id" class="btn btn-danger btn-sm">Skip</a> 
 
                         }
                         else
                         {
-                            <a asp-action="BookingToogle" asp-route-id="@item.Id" class="btn btn-success btn-sm">Book</a> <span>|</span>
+                            <a asp-action="BookingToogle" asp-route-id="@item.Id" class="btn btn-success btn-sm">Book</a>
                         }
                     }
 
                     @if (User.IsInRole("Admin"))
                     {
+                        <span>|</span>
                         <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> <span>|</span>
                         <a asp-action="Details" asp-route-id="@item.Id">Details</a> <span>|</span>
                         <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>

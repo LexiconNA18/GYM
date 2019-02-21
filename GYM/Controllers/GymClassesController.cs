@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace GYM.Controllers
 {
-    [Authorize(Roles ="Admin")]
+    [Authorize(Roles ="Member")]
     public class GymClassesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -32,17 +32,21 @@ namespace GYM.Controllers
                 return View(await _context.GymClass.ToListAsync());
             }
 
-            var user = await GetCurrentUserAsync();
-            var model = await _context.GymClass.Include(a => a.AttendingMembers)
-                .ThenInclude(u => u.ApplicationUser)
-                .ToListAsync();
+            if (User.IsInRole("Member"))
+            {
+                var user = await GetCurrentUserAsync();
+                var model = await _context.GymClass.Include(a => a.AttendingMembers)
+                    .ThenInclude(u => u.ApplicationUser)
+                    .ToListAsync();
 
-            ViewData["Booked"] = model.SelectMany(m => m.AttendingMembers)
-                    .Where(u => u.ApplicationUserId == user.Id)
-                    .Select(d => new {GymId = d.GymClassId, UserId = d.ApplicationUserId })
-                    .ToDictionary(a => a.GymId, a => a.UserId);
+                ViewData["Booked"] = model.SelectMany(m => m.AttendingMembers)
+                        .Where(u => u.ApplicationUserId == user.Id)
+                        .Select(d => new { GymId = d.GymClassId, UserId = d.ApplicationUserId })
+                        .ToDictionary(a => a.GymId, a => a.UserId);
 
-            return View(model);
+                return View(model);
+            }
+            return View(await _context.GymClass.ToListAsync());
         }
 
         [Authorize(Roles ="Member")]
@@ -86,6 +90,7 @@ namespace GYM.Controllers
         }
 
         // GET: GymClasses/Details/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
@@ -104,6 +109,7 @@ namespace GYM.Controllers
         }
 
         // GET: GymClasses/Create
+        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View();
@@ -114,6 +120,7 @@ namespace GYM.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create([Bind("Id,Name,StartTime,Durartion,De")] GymClass gymClass)
         {
             if (ModelState.IsValid)
@@ -126,6 +133,7 @@ namespace GYM.Controllers
         }
 
         // GET: GymClasses/Edit/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
@@ -146,6 +154,7 @@ namespace GYM.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,StartTime,Durartion,De")] GymClass gymClass)
         {
             if (id != gymClass.Id)
@@ -177,6 +186,7 @@ namespace GYM.Controllers
         }
 
         // GET: GymClasses/Delete/5
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
@@ -197,6 +207,7 @@ namespace GYM.Controllers
         // POST: GymClasses/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var gymClass = await _context.GymClass.FindAsync(id);
